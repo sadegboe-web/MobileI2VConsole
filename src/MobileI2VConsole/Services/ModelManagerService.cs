@@ -43,7 +43,7 @@ public class ModelManagerService : IModelManager, IDisposable
             {
                 ModelName = model.Name,
                 DownloadProgress = 0,
-                IsDownloaded = true,
+                IsDownloaded = false,
                 IsLoaded = false
             };
         }
