@@ -117,7 +117,7 @@
                             CornerRadius="8"
                             HeightRequest="40"
                             FontSize="13"
-                            IsEnabled="{Binding IsDownloading, Converter={x:Null}}" />
+                            />
                 </VerticalStackLayout>
             </Border>
 
