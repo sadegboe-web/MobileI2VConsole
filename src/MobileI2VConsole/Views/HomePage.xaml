@@ -5,7 +5,7 @@
              x:Class="MobileI2VConsole.Views.HomePage"
              x:DataType="vm:HomeViewModel"
              Title="MobileI2V"
-             BackgroundColor="{StaticResource Surface}"
+             BackgroundColor="{StaticResource Surface}">
 
     <ScrollView>
         <VerticalStackLayout Spacing="16" Padding="20">
