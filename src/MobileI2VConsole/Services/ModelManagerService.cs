@@ -203,26 +203,26 @@ public class ModelManagerService : IModelManager, IDisposable
         _sessions.TryGetValue(modelName, out session);
 
     public async Task<string> GetModelPathAsync(string modelName)
-    {
-        var cachePath = Path.Combine(FileSystem.CacheDirectory, modelName);
+{
+    await _fileService.InitializeAsync();
 
-        if (!File.Exists(cachePath))
-        {
-            using var asset = await FileSystem.OpenAppPackageFileAsync(modelName);
-            using var file = File.Create(cachePath);
-            await asset.CopyToAsync(file);
-        }
+    var modelPath = Path.Combine(
+        _fileService.GetModelsDirectory(), modelName);
 
-        return cachePath;
-        //Path.Combine(_fileService.GetModelsDirectory(), modelName);
-    }
+    if (File.Exists(modelPath))
+        return modelPath;
 
-    // Synchronous wrapper used in unit tests / legacy callers
-    public string GetModelPath(string modelName)
-    {
-        return Path.Combine(FileSystem.CacheDirectory, modelName);
-    }
+    await TryCopyFromAppPackageAsync(
+        modelName, modelPath, CancellationToken.None);
 
+    return modelPath;
+}
+
+public string GetModelPath(string modelName)
+{
+    return Path.Combine(
+        _fileService.GetModelsDirectory(), modelName);
+}
     public IReadOnlyList<ModelStatus> GetAllStatus() =>
         Models.Select(m => _status.GetValueOrDefault(m.Name, new ModelStatus
         {
