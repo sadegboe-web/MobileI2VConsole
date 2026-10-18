@@ -125,12 +125,13 @@ public partial class HomeViewModel : ObservableObject
                 DownloadStatusText = $"Downloading {status.ModelName}... {status.DownloadProgress:P0}";
             });
 
-            var success = true;// all models are bundled in assets, so no download is needed. //await _modelManager.DownloadModelsAsync(progress);
-            if (success)
-            {
-                IsModelDownloaded = true;
-                DownloadStatusText = "All models ready";
-            }
+            var success = await _modelManager.DownloadModelsAsync(progress);
+IsModelDownloaded = success &&
+    _modelManager.GetAllStatus().All(s => s.IsDownloaded);
+
+DownloadStatusText = IsModelDownloaded
+    ? "All models ready"
+    : "Models need to be downloaded";
         }
         catch (Exception ex)
         {
