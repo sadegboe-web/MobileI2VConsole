@@ -22,10 +22,10 @@ public class ModelManagerService : IModelManager, IDisposable
     // Model registry
     private static readonly ModelInfo[] Models = new[]
     {
-        new ModelInfo("vae_encoder.onnx", "https://huggingface.co/hustvl/MobileI2V/resolve/main/vae_encoder.onnx", 1),
-        new ModelInfo("qwen2_encoder.onnx", "https://huggingface.co/hustvl/MobileI2V/resolve/main/qwen2_encoder.onnx", 2),
-        new ModelInfo("mobilei2v_unet.onnx", "https://huggingface.co/hustvl/MobileI2V/resolve/main/mobilei2v_unet.onnx", 3),
-        new ModelInfo("turbo_vaed.onnx", "https://huggingface.co/hustvl/Turbo-VAED/resolve/main/turbo_vaed.onnx", 4),
+        new ModelInfo("vae_encoder.onnx", "https://github.com/sadegboe-web/MobileI2VConsole/releases/download/models-v1/vae_encoder.onnx", 1),
+        new ModelInfo("qwen2_encoder.onnx", "https://github.com/sadegboe-web/MobileI2VConsole/releases/download/models-v1/qwen2_encoder.onnx", 2),
+        new ModelInfo("mobilei2v_unet.onnx", "https://github.com/sadegboe-web/MobileI2VConsole/releases/download/models-v1/mobilei2v_unet.onnx", 3),
+        new ModelInfo("turbo_vaed.onnx", "https://github.com/sadegboe-web/MobileI2VConsole/releases/download/models-v1/turbo_vaed.onnx", 4),
     };
 
     private record ModelInfo(string Name, string Url, int Order);
