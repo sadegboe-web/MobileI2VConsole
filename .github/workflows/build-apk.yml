@@ -28,7 +28,7 @@ jobs:
         run: dotnet restore src/MobileI2VConsole/MobileI2VConsole.csproj
 
       - name: Configure persistent signing key
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
         shell: pwsh
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -37,8 +37,9 @@ jobs:
           [IO.File]::WriteAllBytes("$env:GITHUB_WORKSPACE/mobilei2v-release.keystore", $bytes)
 
       - name: Build signed APK with persistent key
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
         env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -46,7 +47,9 @@ jobs:
           dotnet publish src/MobileI2VConsole/MobileI2VConsole.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:AndroidKeyStore=true -p:AndroidSigningKeyStore="$env:GITHUB_WORKSPACE/mobilei2v-release.keystore" -p:AndroidSigningKeyAlias="$env:ANDROID_KEY_ALIAS" -p:AndroidSigningKeyPass="$env:ANDROID_KEY_PASSWORD" -p:AndroidSigningStorePass="$env:ANDROID_KEYSTORE_PASSWORD" -o ./apk-output
 
       - name: Build APK (temporary default signing)
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 == '' }}
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 == '' }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           dotnet publish src/MobileI2VConsole/MobileI2VConsole.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -o ./apk-output
 
