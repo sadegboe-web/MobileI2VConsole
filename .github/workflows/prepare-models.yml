@@ -2,6 +2,9 @@ name: Prepare ONNX Models
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/prepare-models.yml"
 
 permissions:
   contents: write
