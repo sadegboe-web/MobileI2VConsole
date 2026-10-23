@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - ".github/workflows/prepare-models.yml"
+      - "scripts/convert/requirements.txt"
 
 permissions:
   contents: write
