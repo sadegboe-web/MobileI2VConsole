@@ -1,0 +1,54 @@
+name: Prepare ONNX Models
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: scripts/convert/requirements.txt
+
+      - name: Install CPU conversion dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r scripts/convert/requirements.txt
+
+      - name: Convert all four models to ONNX
+        run: |
+          python scripts/convert/convert_all.py --output ./models --device cpu --verbose
+
+      - name: Verify required model files
+        run: |
+          test -s models/vae_encoder.onnx
+          test -s models/qwen2_encoder.onnx
+          test -s models/mobilei2v_unet.onnx
+          test -s models/turbo_vaed.onnx
+          ls -lh models
+
+      - name: Publish model assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: models-v1
+          name: MobileI2V ONNX Models v1
+          body: Generated ONNX model files for MobileI2VConsole. These files are large; keep this release separate from APK releases.
+          files: |
+            models/vae_encoder.onnx
+            models/qwen2_encoder.onnx
+            models/mobilei2v_unet.onnx
+            models/turbo_vaed.onnx
+            models/models_manifest.json
+          fail_on_unmatched_files: true
+          make_latest: false
