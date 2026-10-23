@@ -131,7 +131,7 @@ public class InferenceOrchestrator : IInferenceOrchestrator
         finally
         {
             // Free model memory — unload in reverse dependency order
-            foreach (var model in new[] { "turbo_vaed", "mobilei2v_unet", "qwen2_encoder", "vae_encoder" })
+            foreach (var model in new[] { "turbo_vaed.onnx", "mobilei2v_unet.onnx", "qwen2_encoder.onnx", "vae_encoder.onnx" })
             {
                 try { await _modelManager.UnloadModelAsync(model); }
                 catch { /* best-effort cleanup */ }
