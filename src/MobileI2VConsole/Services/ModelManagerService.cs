@@ -296,7 +296,7 @@ public string GetModelPath(string modelName)
 
     private async Task DownloadManifestAsync(string modelsDir, CancellationToken ct)
     {
-        var manifestUrl = "https://huggingface.co/hustvl/MobileI2V/resolve/main/models_manifest.json";
+        var manifestUrl = "https://github.com/sadegboe-web/MobileI2VConsole/releases/download/models-v1/models_manifest.json";
 
         try
         {
