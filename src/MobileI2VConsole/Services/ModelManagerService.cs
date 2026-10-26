@@ -159,10 +159,17 @@ public class ModelManagerService : IModelManager, IDisposable
 
         if (_ortEnv == null || _ortEnv.IsInvalid)
             _ortEnv = OrtEnv.Instance();
-        var opts = new SessionOptions();
-
-        // Try to enable NNAPI for hardware acceleration
-        try { opts.AppendExecutionProvider_Nnapi(/* nnapiFlags */ 0); } catch { /* fall back to CPU */ }
+        // Prefer the CPU provider for stability on Android devices with limited RAM.
+        // NNAPI can successfully initialize but still crash later during inference on some devices.
+        using var opts = new SessionOptions
+        {
+            ExecutionMode = ExecutionMode.ORT_SEQUENTIAL,
+            EnableMemoryPattern = false,
+            EnableCpuMemArena = false,
+            GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_BASIC,
+            InterOpNumThreads = 1,
+            IntraOpNumThreads = 2
+        };
 
         var session = new InferenceSession(modelPath, opts);
 
