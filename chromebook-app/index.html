@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Studio Vidéo IA — Chromebook</title>
+<style>
+:root{color-scheme:dark;--bg:#10131b;--panel:#191e2a;--line:#30384a;--accent:#8b9cff;--text:#f4f6ff;--muted:#b5bdd0}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#10131b,#1b2030);color:var(--text);font:16px system-ui,Arial,sans-serif}
+main{max-width:920px;margin:auto;padding:24px 16px 48px}header{margin-bottom:20px}h1{font-size:clamp(1.6rem,4vw,2.3rem);margin:0 0 8px}p{color:var(--muted);line-height:1.5}.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:5px 10px;color:#cbd2ff;font-size:.85rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}label{display:block;font-weight:600;margin:12px 0 7px}input[type=file],textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;background:#10141e;color:var(--text);padding:11px}textarea{min-height:108px;resize:vertical}button{border:0;border-radius:11px;padding:12px 15px;background:var(--accent);color:#101326;font-weight:700;cursor:pointer;margin:8px 8px 0 0}button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#30384a;color:var(--text)}canvas{display:block;width:100%;max-height:420px;aspect-ratio:16/9;object-fit:contain;background:#0b0d13;border-radius:12px}.status{margin-top:12px;padding:10px 12px;border-radius:10px;background:#10141e;color:var(--muted);white-space:pre-wrap}.note{font-size:.9rem;border-left:3px solid #e2b86d;padding-left:12px}.small{font-size:.85rem;color:var(--muted)}@media(max-width:700px){.grid{grid-template-columns:1fr}main{padding:16px 12px 32px}}
+</style>
+</head>
+<body><main>
+<header><span class="tag">Prototype Chromebook</span><h1>Studio Vidéo</h1><p>Prépare une scène à partir d’une image et teste l’export vidéo directement dans ChromeOS.</p></header>
+<div class="grid">
+<section class="panel">
+<h2>1. Préparer la scène</h2>
+<label for="image">Image de référence (ex. Amara ou Thomas)</label><input id="image" type="file" accept="image/*">
+<label for="prompt">Prompt de la scène</label><textarea id="prompt" placeholder="Décris le mouvement, l’expression et l’ambiance…"></textarea>
+<label for="motion">Mouvement de caméra</label><select id="motion"><option value="zoom">Zoom cinématique doux</option><option value="pan">Panoramique lent</option><option value="float">Mouvement flottant subtil</option></select>
+<label for="duration">Durée</label><select id="duration"><option value="4">4 secondes (test rapide)</option><option value="5" selected>5 secondes</option><option value="8">8 secondes</option><option value="10">10 secondes</option></select>
+<button id="preview" disabled>Prévisualiser</button><button id="export" disabled>Exporter la vidéo</button>
+<p class="note">Important : cette première version teste l’image, l’animation et l’export. Elle ne fait pas encore d’inférence IA ; il faudra connecter un moteur vidéo IA pour générer de vrais mouvements de visage et de corps.</p>
+</section>
+<section class="panel">
+<h2>2. Aperçu</h2><canvas id="canvas" width="1280" height="720"></canvas>
+<div id="status" class="status">Choisis une image pour commencer.</div>
+<p class="small">Le fichier exporté sera au format WebM, lisible dans Chrome et convertible ensuite en MP4 si nécessaire.</p>
+</section>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d');
+let img=null,raf=0,recording=false;
+function draw(t=0){ctx.fillStyle='#0b0d13';ctx.fillRect(0,0,canvas.width,canvas.height);if(!img)return;const scale=Math.max(canvas.width/img.width,canvas.height/img.height);const baseW=img.width*scale,baseH=img.height*scale;let k=1,x=(canvas.width-baseW)/2,y=(canvas.height-baseH)/2;const mode=$('motion').value;if(mode==='zoom')k=1+0.09*t;else if(mode==='pan')x-=canvas.width*0.06*t;else{x+=Math.sin(t*4)*12;y+=Math.cos(t*3)*8;k=1+0.025*t}const w=baseW*k,h=baseH*k;ctx.drawImage(img,x+(baseW-w)/2,y+(baseH-h)/2,w,h)}
+$('image').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const url=URL.createObjectURL(f);img=new Image();img.onload=()=>{cancelAnimationFrame(raf);draw(0);$('preview').disabled=false;$('export').disabled=false;$('status').textContent='Image chargée. Tu peux prévisualiser ou exporter un test.';URL.revokeObjectURL(url)};img.onerror=()=>{$('status').textContent='Impossible de lire cette image.'};img.src=url});
+$('preview').addEventListener('click',()=>{if(!img)return;cancelAnimationFrame(raf);const start=performance.now(),dur=Number($('duration').value)*1000;function tick(now){const p=Math.min(1,(now-start)/dur);draw(p);if(p<1)raf=requestAnimationFrame(tick);else $('status').textContent='Prévisualisation terminée.'}raf=requestAnimationFrame(tick);$('status').textContent='Prévisualisation en cours…'});
+$('export').addEventListener('click',async()=>{if(!img||recording)return;if(!canvas.captureStream||!window.MediaRecorder){$('status').textContent='Cet environnement ne permet pas l’export vidéo. Essaie avec Chrome à jour.';return}recording=true;$('export').disabled=true;cancelAnimationFrame(raf);const stream=canvas.captureStream(24);let mime='video/webm;codecs=vp9';if(!MediaRecorder.isTypeSupported(mime))mime='video/webm';const chunks=[];let rec;try{rec=new MediaRecorder(stream,{mimeType:mime});rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};rec.onstop=()=>{const blob=new Blob(chunks,{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='scene-test-chromebook.webm';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);stream.getTracks().forEach(t=>t.stop());recording=false;$('export').disabled=false;$('status').textContent='Export terminé : scene-test-chromebook.webm';draw(0)};rec.start();const start=performance.now(),dur=Number($('duration').value)*1000;function tick(now){const p=Math.min(1,(now-start)/dur);draw(p);if(p<1)raf=requestAnimationFrame(tick);else rec.stop()}$('status').textContent='Création du fichier vidéo de test…';raf=requestAnimationFrame(tick)}catch(err){recording=false;$('export').disabled=false;stream.getTracks().forEach(t=>t.stop());$('status').textContent='Erreur pendant l’export : '+err.message}});
+</script>
+</body></html>
